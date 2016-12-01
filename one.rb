@@ -11,6 +11,10 @@ input = File.read('one.txt').split(',').map(&:strip)
 @directions = ['n', 'e', 's', 'w']
 @direction = 'n'
 
+# part 2
+@stops = []
+@overlap = []
+
 def turn(dir)
   heading_index = @directions.rindex(@direction)
   change = dir == 'L' ? heading_index - 1 : heading_index + 1
@@ -24,8 +28,24 @@ input.each do |walk|
   dist = walk[1..-1]
   @direction = turn(dir)
   up_down = (@direction == 's' || @direction == 'w') ? -1 : 1
-  @position[@direction_key[@direction]] += (dist.to_i * up_down)
+
+  # part 1 start
+  # @position[@direction_key[@direction]] += (dist.to_i * up_down)
+  # part 1 end
+
+  # part 2 start
+  dist.to_i.times do
+    @position[@direction_key[@direction]] += (1 * up_down)
+    if @stops.include? @position.dup
+      @overlap = @position.dup
+      break
+    end
+    @stops.push @position.dup
+  end
+  break if @overlap.any?
+  # part 2 end
 end
 
-p @position.map{ |n| n.abs }.inject(:+)
+p @position.map(&:abs).inject(:+)
 # 273
+# #115
