@@ -1,48 +1,48 @@
-input = File.read('one.txt').split(',').map(&:strip)
+input = File.read('one.txt')
+            .split(',')
+            .map(&:strip)
+            .map { |order| [order[0...1], order[1..-1].to_i] }
 
 @position = [0, 0]
-@direction_key = {
-  'n' => 1,
-  's' => 1,
-  'e' => 0,
-  'w' => 0
-}
 
-@directions = ['n', 'e', 's', 'w']
+# x/y plane, pos/neg
+@dir_info = [
+  [1, 1], # n
+  [0, 1], # e
+  [1, -1], # s
+  [0, -1], # w
+]
+
+@directions = %w(n e s w)
 @direction = 'n'
 
 # part 2
 @stops = []
-@overlap = []
+@overlap = false
 
 def turn(dir)
-  heading_index = @directions.rindex(@direction)
-  change = dir == 'L' ? heading_index - 1 : heading_index + 1
-  change = 0 if change > (@directions.length - 1)
-  change = (@directions.length - 1) if change < 0
-  @directions[change]
+  current_index = @directions.rindex(@direction)
+  new_index = dir == 'L' ? current_index - 1 : current_index + 1
+  index = new_index % @directions.size
+  @direction = @directions[index]
+  @dir_info[index]
 end
 
 input.each do |walk|
-  dir = walk[0...1]
-  dist = walk[1..-1]
-  @direction = turn(dir)
-  up_down = (@direction == 's' || @direction == 'w') ? -1 : 1
+  dir_info = turn(walk[0])
 
   # part 1 start
-  # @position[@direction_key[@direction]] += (dist.to_i * up_down)
+  # @position[dir_info[0]] += (walk[1] * dir_info[1])
   # part 1 end
 
   # part 2 start
-  dist.to_i.times do
-    @position[@direction_key[@direction]] += (1 * up_down)
-    if @stops.include? @position.dup
-      @overlap = @position.dup
-      break
-    end
+  walk[1].times do
+    @position[dir_info[0]] += (1 * dir_info[1])
+    @overlap = true if @stops.include? @position
+    break if @overlap
     @stops.push @position.dup
   end
-  break if @overlap.any?
+  break if @overlap
   # part 2 end
 end
 
