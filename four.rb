@@ -28,3 +28,19 @@ end
 
 p rooms.map { |room| sector(room) if real?(room) }.compact.inject(:+)
 # 137896
+
+#
+@storage_room
+
+# part 2
+alpha = ('a'..'z').to_a
+rooms_2 = rooms.dup
+rooms_2.map do |room|
+  offset = sector(room)
+  name = /(\D+)\d/.match(room)[1].delete('-').split('')
+  new_name = name.map { |letter| alpha[(alpha.index(letter) + offset) % 26] }.join
+  @storage_room = room if /northpole/ =~ new_name
+  break if @storage_room
+end
+
+p @storage_room
