@@ -5,13 +5,13 @@ input = File.read('one.txt')
 
 @position = [0, 0]
 
-# x/y plane, pos/neg
-@dir_info = [
-  [1, 1], # n
-  [0, 1], # e
-  [1, -1], # s
-  [0, -1], # w
-]
+# x/y index, pos/neg
+@dir_info = {
+  'n' => [1, 1], # n
+  'e' => [0, 1], # e
+  's' => [1, -1], # s
+  'w' => [0, -1], # w
+}
 
 @directions = %w(n e s w)
 @direction = 'n'
@@ -23,21 +23,20 @@ input = File.read('one.txt')
 def turn(dir)
   current_index = @directions.rindex(@direction)
   new_index = dir == 'L' ? current_index - 1 : current_index + 1
-  index = new_index % @directions.size
-  @direction = @directions[index]
-  @dir_info[index]
+  @directions[new_index % @directions.size]
 end
 
+
 input.each do |walk|
-  dir_info = turn(walk[0])
+  @direction = turn(walk[0])
 
   # part 1 start
-  # @position[dir_info[0]] += (walk[1] * dir_info[1])
+  # @position[@dir_info[@direction][0]] += (walk[1] * @dir_info[@direction][1])
   # part 1 end
 
   # part 2 start
   walk[1].times do
-    @position[dir_info[0]] += (1 * dir_info[1])
+    @position[@dir_info[@direction][0]] += (1 * @dir_info[@direction][1])
     @overlap = true if @stops.include? @position
     break if @overlap
     @stops.push @position.dup
