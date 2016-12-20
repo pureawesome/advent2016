@@ -6,21 +6,12 @@ def pair_splits(str)
   splits = []
   while str =~ /(\d+)(?:x)(\d+)/
     nums = nums_regex(str)
-    length = nums[1].to_i
     start = str.index(/\(/)
-    slice = str.slice!(start, nums[0].size + length + 2)
+    slice = str.slice!(start, nums[0].size + nums[1].to_i + 2)
     splits.push(slice)
   end
   splits.push(str)
   splits
-end
-
-def decomp(str)
-  nums = nums_regex(str)
-  return str.size unless nums
-  start = 3 + nums[0].size
-  copy = str.slice(start, nums[1].to_i)
-  copy * nums[2].to_i
 end
 
 def decomp_to_num(str)
@@ -35,5 +26,37 @@ def part1_size(data)
   decomps.inject(:+)
 end
 
+def part2_size(data)
+  total = 0
+  computed = ''
+  while data =~ /\(/
+    splits = pair_splits(data)
+    splits.map! do |split|
+      if split =~ /\(/
+        matches = split.scan(/\(/)
+        if matches.size == 1
+          total += decomp_to_num(split)
+          computed
+        else
+          nums = nums_regex(split)
+          new_splits = pair_splits(split[nums[0].size + 2..-1])
+          new_splits.map do |str|
+            str.sub!(/x(\d+)\)/) do |match|
+              new_number = (match[1..-2].to_i * nums[2].to_i).to_s
+              'x' + new_number + ')'
+            end
+          end
+        end
+      else
+        total += split.size
+        computed
+      end
+    end
+    data = splits.join
+  end
+  total
+end
+
 data = File.read('nine.txt').chomp
-p part1_size(data)
+# p part1_size(data)
+p part2_size(data)
