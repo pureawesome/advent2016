@@ -1,53 +1,63 @@
 require 'digest'
 
 input = 'ngcjuoqr'
-input = 'abc'
-@sets = {}
+test_input = 'abc'
+@sets = Hash.new(Float::INFINITY)
+@stretches = Hash.new(Float::INFINITY)
+@md5 = Digest::MD5.new
 
 def get_hexdigest(input)
-  return @sets[input] if @sets[input]
-  md5 = Digest::MD5.new
-  md5.update input
-  @sets[input] = md5.hexdigest
+  @sets[input] = @md5.hexdigest(input) if @sets[input] == Float::INFINITY
+  @sets[input]
 end
 
-def key?(hex, count, raw_input)
-  status = nil
-  hex.match(/(.)\1\1/) do |match|
-    character = match[1]
-    status = (count + 1..count + 1000).to_a.map do |iter|
-      get_hexdigest(raw_input + iter.to_s) =~ /(#{character})\1\1\1\1/
-    end
-    status.any?
+def key?(character, count, raw_input)
+  status = (0...1000).to_a.map.with_index do |iter|
+    check = count - 1000 + iter
+    next if check < 0
+    input = raw_input + check.to_s
+    first = get_hexdigest(input).scan(/(.)\1\1/)
+    next if first.empty?
+    check if character == first[0][0]
+
+    # Part 2
+    # return input if get_stretch_hex(input, get_hexdigest(input)) =~ /(#{character})\1\1/
+    #
   end
-  status.any?
+  # p status
+  status.compact
 end
 
-def get_stretch_hex(hex)
-  2016.times { hex = get_hexdigest(hex.downcase) }
-  hex
+def get_stretch_hex(input, hash)
+  @stretches[input] if @stretches[input] != Float::INFINITY
+  2016.times { hash = get_hexdigest(hash.downcase) }
+  @stretches[input] = hash
+  hash
 end
 
 def run(raw_input)
   keys = []
   count = 0
 
-  until keys.size == 64 || count > 22555
+  until keys.size > 64
     input = raw_input + count.to_s
     hex = get_hexdigest(input)
     # part 2
-    hex = get_stretch_hex(hex)
+    # hex = get_stretch_hex(input.downcase, hex.downcase)
     #
-    if hex =~ /(\w)\1\1/
-      keys << count if key?(hex, count, raw_input)
+
+    if index = hex =~ /(.)\1{4}/
+      key = key?(hex[index], count, raw_input)
+      keys += key if key
+      keys.uniq!
     end
     count += 1
-    p count if count % 1000 == 0
   end
-  keys[-1]
+  keys.sort!
 end
 
 start_time = Time.now
-p run(input)
+p run(input)[63]
+# p run(test_input)[63] == 22728
 end_time = Time.now
 puts "Time elapsed #{(end_time - start_time)} seconds"
