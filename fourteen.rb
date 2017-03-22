@@ -2,6 +2,7 @@ require 'digest'
 
 input = 'ngcjuoqr'
 test_input = 'abc'
+
 @sets = Hash.new(Float::INFINITY)
 @stretches = Hash.new(Float::INFINITY)
 @md5 = Digest::MD5.new
@@ -12,16 +13,20 @@ def get_hexdigest(input)
 end
 
 def key?(character, count, raw_input)
-  status = (0...1000).to_a.map.with_index do |iter|
-    check = count - 1000 + iter
+  status = (0..1000).to_a.map.with_index do |iter|
+    check = count - 1001 + iter
     next if check < 0
     input = raw_input + check.to_s
-    first = get_hexdigest(input).scan(/(.)\1\1/)
+    # part 1
+    # first = get_hexdigest(input).scan(/(.)\1\1/)
+    # part 2
+    first = get_stretch_hex(input, get_hexdigest(input)).scan(/(.)\1\1/)
+    #
     next if first.empty?
-    check if character == first[0][0]
-
+    # part 1
+    # check if character == first[0][0]
     # Part 2
-    # return input if get_stretch_hex(input, get_hexdigest(input)) =~ /(#{character})\1\1/
+    check if get_stretch_hex(input, get_hexdigest(input)) =~ /(#{character})\1\1/
     #
   end
   # p status
@@ -39,15 +44,19 @@ def run(raw_input)
   keys = []
   count = 0
 
-  until keys.size > 64
+  # until keys.size > 64
+  until count > 23_000
     input = raw_input + count.to_s
     hex = get_hexdigest(input)
+
     # part 2
-    # hex = get_stretch_hex(input.downcase, hex.downcase)
+    hex = get_stretch_hex(input.downcase, hex.downcase)
     #
 
     if index = hex =~ /(.)\1{4}/
       key = key?(hex[index], count, raw_input)
+      p "input #{input}" if key
+      p "key #{key}" if key
       keys += key if key
       keys.uniq!
     end
@@ -57,7 +66,7 @@ def run(raw_input)
 end
 
 start_time = Time.now
-p run(input)[63]
-# p run(test_input)[63] == 22728
+p run(input)
+# p run(test_input)
 end_time = Time.now
 puts "Time elapsed #{(end_time - start_time)} seconds"
